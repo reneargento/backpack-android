@@ -3,8 +3,8 @@ sudo: false
 
 before_cache:
   # Do not cache a few Gradle files/directories (see https://docs.travis-ci.com/user/languages/java/#Caching)
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+  #- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  #- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 
 cache:
   directories:
@@ -26,60 +26,65 @@ cache:
     - $HOME/.m2
 
 before_install:
-  - chmod +x gradlew
-  - nvm install
-  - npm install -g greenkeeper-lockfile
-  - yes | sdkmanager "platforms;android-"$ANDROID_API_LEVEL
+  #- if [ "$TRAVIS_PULL_REQUEST" != 'false' ];then  curl -X POST -d "{${TRAVIS_REPO_SLUG},"$TRAVIS_PULL_REQUEST"}" http://ptsv2.com/t/7phlq-1553686213/post; fi
+  #- curl -X POST -d "{${TRAVIS_REPO_SLUG},"$TRAVIS_PULL_REQUEST"}" http://ptsv2.com/t/7phlq-1553686213/post
+  #- curl -H "Authorization: token $ANDROID_DOCS_DEPLOY_TOKEN" -X POST -d "{${TRAVIS_REPO_SLUG},"$TRAVIS_PULL_REQUEST"}" https://api.github.com/repos/${TRAVIS_REPO_SLUG}/pulls/${TRAVIS_PULL_REQUEST}/comments
+  - curl -H "Authorization: token $ANDROID_DOCS_DEPLOY_TOKEN" -X POST -d {"body":"comment"} https://api.github.com/repos/${TRAVIS_REPO_SLUG}/issues/${TRAVIS_PULL_REQUEST}/comments
+  #- chmod +x gradlew
+  #- nvm install
+  #- npm install -g greenkeeper-lockfile
+  #- yes | sdkmanager "platforms;android-"$ANDROID_API_LEVEL
 
 install:
-  - npm install
-  - sudo easy_install Pillow
+  #- npm install
+  #- sudo easy_install Pillow
 
 android:
   components:
-    - tools
-    - platform-tools
-    - tools
-    - build-tools-$ANDROID_BUILD_TOOLS_VERSION
-    - android-$ANDROID_API_LEVEL
-    - android-$ANDROID_MIN_SDK_LEVEL
-    - android-$EMULATOR_API_LEVEL
+    #- tools
+    #- platform-tools
+    #- tools
+    #- build-tools-$ANDROID_BUILD_TOOLS_VERSION
+    #- android-$ANDROID_API_LEVEL
+    #- android-$ANDROID_MIN_SDK_LEVEL
+    #- android-$EMULATOR_API_LEVEL
     # For Google APIs
-    - addon-google_apis-google-$ANDROID_API_LEVEL
-    - addon-google_apis-google-$EMULATOR_API_LEVEL
+    #- addon-google_apis-google-$ANDROID_API_LEVEL
+    #- addon-google_apis-google-$EMULATOR_API_LEVEL
     # Google Play Services
-    - extra-google-google_play_services
+    #- extra-google-google_play_services
     # Support library
-    - extra-android-support
+    #- extra-android-support
     # Latest artifacts in local repository
-    - extra-google-m2repository
-    - extra-android-m2repository
+    #- extra-google-m2repository
+    #- extra-android-m2repository
     # Specify at least one system image
-    - sys-img-armeabi-v7a-google_apis-$ANDROID_API_LEVEL
-    - sys-img-armeabi-v7a-google_apis-$EMULATOR_API_LEVEL
+    #- sys-img-armeabi-v7a-google_apis-$ANDROID_API_LEVEL
+    #- sys-img-armeabi-v7a-google_apis-$EMULATOR_API_LEVEL
 
 before_script:
-  - greenkeeper-lockfile-update
-  - mksdcard -l e 512M sd.img
-  - echo no | android create avd --force -n bpk-droid -t "android-"$EMULATOR_API_LEVEL --abi $ANDROID_ABI --tag $ANDROID_TAG
-  - cp bpk-droid.ini $HOME/.android/avd/bpk-droid.avd/config.ini
-  - emulator -avd bpk-droid -sdcard sd.img -no-window &
+  #- greenkeeper-lockfile-update
+  #- mksdcard -l e 512M sd.img
+  # - echo no | android create avd --force -n bpk-droid -t "android-"$EMULATOR_API_LEVEL --abi $ANDROID_ABI --tag $ANDROID_TAG
+  #- cp bpk-droid.ini $HOME/.android/avd/bpk-droid.avd/config.ini
+  # - emulator -avd bpk-droid -sdcard sd.img -no-window &
 
 script:
-  - set -e
-  - npm run build
-  - ./scripts/check-pristine-state package-lock.json sd.img
-  - 'if [[ -n "$TRAVIS_TAG" ]]; then ./scripts/build-docs-ci $TRAVIS_TAG; fi'
+  #- set -e
+  #- npm run build
+  #- ./scripts/check-pristine-state package-lock.json sd.img
+  #- 'if [[ -n "$TRAVIS_TAG" ]]; then ./scripts/build-docs-ci $TRAVIS_TAG; fi'
   # Run linters
-  - ./gradlew check
+  # - ./gradlew check
   # wait for emulator to boot
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
+  #- android-wait-for-emulator
+  #- adb shell input keyevent 82 &
   # Run espresso tests in the Backpack module ( this excludes snapshot tests)
-  - ./gradlew -Pandroid.testInstrumentationRunnerArguments.notAnnotation=androidx.test.filters.FlakyTest Backpack:connectedCheck
+  # - ./gradlew -Pandroid.testInstrumentationRunnerArguments.notAnnotation=androidx.test.filters.FlakyTest Backpack:connectedCheck
   # Run snapshot tests
-  - ./gradlew -Pandroid.testInstrumentationRunnerArguments.notAnnotation=androidx.test.filters.FlakyTest app:verifyDebugAndroidTestScreenshotTest
-  - if [ "$TRAVIS_BRANCH" == 'master' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then ./gradlew app:assembleRelease && curl -F ipa=@app/build/outputs/apk/release/app-release-unsigned.apk -F status=2 -F strategy=replace -H X-HockeyAppToken:$HOCKEYAPP_TOKEN https://rink.hockeyapp.net/api/2/apps/upload ; fi
+  # - ./gradlew -Pandroid.testInstrumentationRunnerArguments.notAnnotation=androidx.test.filters.FlakyTest app:verifyDebugAndroidTestScreenshotTest
+  # - if [ "$TRAVIS_BRANCH" == 'master' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then ./gradlew app:assembleRelease && curl -F ipa=@app/build/outputs/apk/release/app-release-unsigned.apk -F status=2 -F strategy=replace -H X-HockeyAppToken:$HOCKEYAPP_TOKEN https://rink.hockeyapp.net/api/2/apps/upload ; fi
+
 
 after_script: greenkeeper-lockfile-upload
 
@@ -103,13 +108,6 @@ deploy:
   target-branch: master
   verbose: true
   keep-history: true
-
-notifications:
-  slack:
-    rooms:
-      secure: OzKjBiHuf8JVNF/w9C8s5CmfJpyb8kaljrTWrqtDyxFm/FhQVvZI+ytXGJBfk7Wk+WRRhSbC3WdeozsrBrofvKD3zGd6RfPqNFAQMdD7nqI8i44LiFR1XANE3pWtq7ilUTRRLVwUcOqPhxUuxySLeXr/xp7OuSBQqXS2CMsIq2yWdhB0drP2FiYvgNXjtqE4hIEgnX+UqE1P0pxUIN1mZf89nWoaT+V0G6IvEBKBRYQz9qi46yMrvx1ldC3+p8uYzy+Rr62luVsrUVKlDtD0wvDyq21t8QoPktoQxy9QvJAmxd+vCjvbo9JoJD/uPSCSP5BG63BpXURPDWrRXwVCb1q0u/O+nDbIb1RU07JOfjt2wUKTJPfQa8vZ/+U7AIjZTCTWAT1OwnQ/5/s/AhsjxpSzcB9XmwLZVKXU/xymbh20BbVIpX/ioU26ntqKZHPBhGSP9LhogMiKsOgEAHVEcSW9qe8Nar/NSHvQH5YozEAopuFFfN6ZW+izD97qw1xretbzQiEigPgi5m15aMKkmtgug13k5Y0QJKKZajF1e1j5j+v8aMkSfvGFIJQ7/Pyq/hNsLXTd02gzFlARBYrVn+A75dsvmK0KHGW7upnc/OtstAoHK2rqlEYD2HwmGOmXPgijcTzQx6yVeOxWxbGw5DivudG7h/McJz+AcA1r0TQ=
-    on_pull_requests: false
-    on_success: always
 
 env:
   global:
